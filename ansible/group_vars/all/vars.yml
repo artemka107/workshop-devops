@@ -1,0 +1,7 @@
+---
+workshop_port: 8080
+workshop_docker_network: "workshop-devops"
+workshop_run_user: "artem"
+workshop_env_file: "~/.env"
+workshop_app_image_name: "artemkadocker/workshop-devops-app"
+workshop_nginx_image_name: "artemkadocker/workshop-devops-nginx"

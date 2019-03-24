@@ -1,0 +1,98 @@
+---
+- hosts: webservers
+  gather_facts: false
+  vars_prompt:
+    - name: "workshop_image_tag"
+      prompt: "Workshop image tag"
+      private: false
+
+  tasks:
+    - set_fact: workshop_image_tag={{ workshop_image_tag }}
+      tags: always
+
+
+- hosts: webservers
+  gather_facts: false
+  # become: true
+  # become_user: "{{ workshop_run_user }}"
+
+  tasks:
+
+    - name: Create a network
+      docker_network:
+        name: "{{ workshop_docker_network }}"
+
+    - template:
+        src: environment.j2
+        dest: "{{ workshop_env_file }}"
+      tags: env
+
+    - name: download app image
+      docker_image:
+        name: "{{ workshop_app_image_name }}:{{ workshop_image_tag }}"
+        force: true
+
+    - name: download nginx image
+      docker_image:
+        name: "{{ workshop_nginx_image_name }}:{{ workshop_image_tag }}"
+        force: true
+
+    # - name: run migrations
+    #   docker_container:
+    #     recreate: true
+    #     detach: false
+    #     name: workshop-app-migrations
+    #     command: "mix ecto.migrate"
+    #     image: "{{ workshop_app_image_name }}:{{ workshop_image_tag }}"
+    #     state: started
+    #     env_file: "{{ workshop_env_file }}"
+    #     env:
+    #       MIX_ENV: prod
+    #     volumes:
+    #       - "/tmp:/tmp"
+    #       - "/var/tmp:/var/tmp"
+    #   run_once: true
+    #   tags: [webserver]
+
+    - name: start nginx
+      docker_container:
+        recreate: true
+        name: hexlet-basics-nginx
+        image: "{{ workshop_nginx_image_name }}:{{ workshop_image_tag }}"
+        state: started
+        restart_policy: always
+        published_ports:
+          - "80:8080"
+        networks:
+          - name: "{{ workshop_docker_network }}"
+      tags: [webserver]
+
+    - name: start application
+      docker_container:
+        recreate: true
+        name: app
+        image: "{{ workshop_app_image_name }}:{{ workshop_image_tag }}"
+        state: started
+        restart_policy: always
+        env_file: "{{ workshop_env_file }}"
+        env:
+          MIX_ENV: prod
+          NODE_ENV: production
+        # published_ports:
+        #   - "80:{{ workshop_port }}"
+        volumes:
+          - "/var/run/docker.sock:/var/run/docker.sock"
+          - "/tmp:/tmp"
+          - "/opt:/opt"
+          - "/var/tmp:/var/tmp"
+        networks:
+          - name: "{{ workshop_docker_network }}"
+      tags: [webserver]
+
+    # - lineinfile:
+    #     regexp: "WORKSHOP_APP_VERSION"
+    #     line: "WORKSHOP_APP_VERSION={{ workshop_image_tag }}"
+    #     dest: /etc/environment
+    #     backup: true
+    #     state: present
+    #   become: true

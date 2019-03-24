@@ -1,0 +1,8 @@
+---
+workshop_db_name: "postgres"
+workshop_db_username: "postgres"
+workshop_db_password: ""
+workshop_db_hostname: "db"
+workshop_node_env: development
+
+

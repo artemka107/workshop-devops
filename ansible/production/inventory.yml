@@ -1,0 +1,8 @@
+---
+
+webservers:
+  hosts:
+    workshop-dev-host:
+      ansible_ssh_user: root
+      ansible_host: 104.248.24.232
+      ansible_python_interpreter: /usr/bin/python3

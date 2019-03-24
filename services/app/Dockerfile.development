@@ -1,0 +1,20 @@
+FROM elixir:latest
+
+ENV HOME /home/shared
+
+RUN mkdir /app
+WORKDIR /app
+
+RUN curl -sL https://deb.nodesource.com/setup_11.x | bash -
+
+RUN apt-get update && apt-get install -y inotify-tools
+RUN apt-get update && apt-get install -y nodejs
+RUN npm install -g npm-check-updates
+
+RUN mix local.hex --force
+RUN mix local.rebar --force
+RUN mix archive.install hex phx_new 1.4.2 --force
+COPY mix.exs mix.lock /app/
+
+CMD ["mix", "phx.server"]
+

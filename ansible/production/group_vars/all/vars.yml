@@ -1,0 +1,4 @@
+---
+workshop_mix_env: prod
+workshop_node_env: production
+
